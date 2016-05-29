@@ -1,0 +1,27 @@
+language: android
+
+notifications:
+  email: false
+
+sudo: false
+
+android:
+  components:
+    - tools
+    - build-tools-23.0.3
+    - android-23
+    - extra-android-m2repository
+    - extra-android-support
+
+before_install:
+ - chmod +x gradlew
+
+script:
+   - chmod +x ./gradlew
+
+deploy:
+  provider: releases
+  file: app/build/outputs/apk/ArduinoConnect.apk
+  skip_cleanup: true
+  on:
+    tags: true

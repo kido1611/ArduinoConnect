@@ -1,4 +1,6 @@
-# ArduinoConnect
+# ArduinoConnect 
+[![Build Status](https://travis-ci.org/kido1611/ArduinoConnect.svg?branch=master)](https://travis-ci.org/kido1611/ArduinoConnect)
+
 Connecting Android and Arduino using bluetooth with Serial communication
 
 ## Tested on :

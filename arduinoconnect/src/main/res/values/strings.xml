@@ -3,4 +3,5 @@
     <string name="dialog_title">Select device</string>
     <string name="refresh_title">Refresh</string>
     <string name="settings_title">Settings</string>
+    <string name="connecting_title">Conntecting</string>
 </resources>

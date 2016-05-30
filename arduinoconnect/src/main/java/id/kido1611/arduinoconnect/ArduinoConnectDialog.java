@@ -1,5 +1,6 @@
 package id.kido1611.arduinoconnect;
 
+import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
@@ -39,10 +40,17 @@ public class ArduinoConnectDialog extends DialogFragment {
 
     private BluetoothDeviceCallback mCallback;
 
+    private ProgressDialog mProgressDialog;
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mBLAdapter = BluetoothAdapter.getDefaultAdapter();
+
+        mProgressDialog = new ProgressDialog(getActivity());
+        mProgressDialog.setTitle(R.string.connecting_title);
+        mProgressDialog.setCancelable(false);
+
     }
 
     @Nullable
@@ -76,10 +84,14 @@ public class ArduinoConnectDialog extends DialogFragment {
         mPairedList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+
                 BluetoothDevice mDevice = mItems.get(i);
+                mProgressDialog.setMessage("Connecting to "+mDevice.getName());
+                mProgressDialog.show();
                 ConnectArduino mConnArduino = new ConnectArduino(mDevice, new BluetoothDeviceCallback() {
                     @Override
                     public void onConnected(BluetoothSocket socket) {
+                        mProgressDialog.dismiss();
                         if(mCallback!=null) mCallback.onConnected(socket);
 
                         dismiss();
@@ -88,6 +100,7 @@ public class ArduinoConnectDialog extends DialogFragment {
                     @Override
                     public void onFailed() {
                         if(mCallback!=null) mCallback.onFailed();
+                        mProgressDialog.dismiss();
                     }
                 });
                 mConnArduino.start();

@@ -2,8 +2,15 @@ language: android
 sudo: required
 android:
   components:
+    - platform-tools
     - tools
     - build-tools-23.0.3
     - android-23
     - extra-android-m2repository
     - extra-android-support
+
+script: ./gradlew build
+
+before_install:
+    - sudo apt-get update -qq
+    - sudo apt-get install -y python2.7

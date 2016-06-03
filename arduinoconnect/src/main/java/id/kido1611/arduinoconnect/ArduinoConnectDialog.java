@@ -139,9 +139,9 @@ public class ArduinoConnectDialog extends DialogFragment {
         mProgressDialog.show();
         ConnectArduino mConnArduino = new ConnectArduino(mDevice, new BluetoothDeviceCallback() {
             @Override
-            public void onConnected(BluetoothSocket socket) {
+            public void onConnected(BluetoothDevice device, BluetoothSocket socket) {
                 mProgressDialog.dismiss();
-                if(mCallback!=null) mCallback.onConnected(socket);
+                if(mCallback!=null) mCallback.onConnected(device, socket);
                 dismiss();
             }
 
@@ -242,9 +242,10 @@ public class ArduinoConnectDialog extends DialogFragment {
         @Override
         public void run() {
             try {
+                if(mBLAdapter.isDiscovering()) mBLAdapter.cancelDiscovery();
                 mSocket.connect();
 
-                if(callback!=null) callback.onConnected(mSocket);
+                if(callback!=null) callback.onConnected(mDevice, mSocket);
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -259,7 +260,7 @@ public class ArduinoConnectDialog extends DialogFragment {
     }
 
     interface BluetoothDeviceCallback{
-        void onConnected(BluetoothSocket socket);
+        void onConnected(BluetoothDevice device, BluetoothSocket socket);
         void onFailed();
     }
 }

@@ -74,7 +74,7 @@ public class MainActivity extends AppCompatActivity
     Log.d("ArduinoConnect", message);
   }
   @Override
-  public void onArduinoConnected() {
+  public void onArduinoConnected(BluetoothDevice device) {
     showLog("Connected");
   }
   @Override

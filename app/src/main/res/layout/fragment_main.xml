@@ -9,9 +9,39 @@
     tools:context="id.kido1611.arduinoconnectexample.MainActivityFragment"
     tools:showIn="@layout/activity_main">
 
-    <TextView
-        android:layout_width="wrap_content"
+    <android.support.design.widget.TextInputLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Hello World!" />
+        android:id="@+id/inputLayout">
+        <android.support.design.widget.TextInputEditText
+            android:inputType="numberDecimal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/inputText"
+            android:hint="@string/text_hint"/>
+    </android.support.design.widget.TextInputLayout>
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Submit"
+        android:id="@+id/btnSubmit"
+        android:layout_below="@id/inputLayout"
+        android:theme="@style/AppTheme.Button"/>
+    <android.support.design.widget.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/outputLayout"
+        android:layout_below="@id/btnSubmit">
+        <android.support.design.widget.TextInputEditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/outputText"
+            android:hint="@string/output_hint"
+            android:singleLine="false"
+            android:inputType="textMultiLine"
+            android:maxLines="8"
+            android:lines="8"
+            android:gravity="top"/>
+    </android.support.design.widget.TextInputLayout>
 
 </RelativeLayout>

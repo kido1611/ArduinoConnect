@@ -15,8 +15,7 @@ import android.widget.Toast;
 import id.kido1611.arduinoconnect.ArduinoConnect;
 import id.kido1611.arduinoconnect.ArduinoConnectCallback;
 
-public class MainActivity extends AppCompatActivity
-        implements ArduinoConnectCallback{
+public class MainActivity extends AppCompatActivity {
 
     private ArduinoConnect mArduinoConnect;
 
@@ -26,7 +25,7 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
 
         mArduinoConnect = new ArduinoConnect(this, getSupportFragmentManager());
-        mArduinoConnect.setCallback(this);
+        mArduinoConnect.setSleepTime(500);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -36,10 +35,11 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View view) {
                 mArduinoConnect.showDialog();
-//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-//                        .setAction("Action", null).show();
             }
         });
+
+        getSupportFragmentManager().beginTransaction().replace(R.id.fragment, new MainActivityFragment()).commit();
+
     }
 
     @Override
@@ -51,6 +51,10 @@ public class MainActivity extends AppCompatActivity
          */
         if(mArduinoConnect!=null)
             mArduinoConnect.onActivityResult(requestCode, resultCode, data);
+    }
+
+    public ArduinoConnect getArduinoConnect(){
+        return mArduinoConnect;
     }
 
     @Override
@@ -67,7 +71,6 @@ public class MainActivity extends AppCompatActivity
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
         }
@@ -84,34 +87,5 @@ public class MainActivity extends AppCompatActivity
          */
         if(mArduinoConnect!=null)
             mArduinoConnect.disconnected();
-    }
-
-    private void showLog(String message){
-        Log.d("ArduinoConnect", message);
-    }
-
-    @Override
-    public void onArduinoConnected() {
-        showLog("Connected");
-    }
-
-    @Override
-    public void onArduinoConnectFailed() {
-        showLog("Failed to connected");
-    }
-
-    @Override
-    public void onSerialTextReceived(String text) {
-        showLog(text);
-    }
-
-    @Override
-    public void onBluetoothDeviceNotFound() {
-        showLog("Bluetooth device not found");
-    }
-
-    @Override
-    public void onBluetoothFailedEnabled() {
-        showLog("Bluetooth device not enabled");
     }
 }

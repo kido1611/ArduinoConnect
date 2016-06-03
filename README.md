@@ -1,5 +1,5 @@
 # ArduinoConnect 
-[![Build Status](https://travis-ci.org/kido1611/ArduinoConnect.svg?branch=master)](https://travis-ci.org/kido1611/ArduinoConnect)
+[![Build Status](https://travis-ci.org/kido1611/ArduinoConnect.svg?branch=master)](https://travis-ci.org/kido1611/ArduinoConnect) [![](https://jitpack.io/v/kido1611/ArduinoConnect.svg)](https://jitpack.io/#kido1611/ArduinoConnect)
 
 Connecting Android and Arduino using bluetooth with Serial communication
 
@@ -15,68 +15,78 @@ Connecting Android and Arduino using bluetooth with Serial communication
   ```
 
 ## How to use :
-1. Clone or download the repo
-2. Import library arduinoconnect
+1. Add this to your root build.gradle
 ```Gradle
-    compile project(":arduinoconnect")
+    allprojects {
+    	repositories {
+    		...
+    		maven { url "https://jitpack.io" }
+    	}
+    }
+```
+2. Add dependency
+```Gradle
+    compile 'com.github.kido1611:ArduinoConnect:-SNAPSHOT'
 ```
 3. Add line to your activity
 
 ```java
-public class MainActivity extends AppCompatActivity
-        implements ArduinoConnectCallback{
-
-  private ArduinoConnect mArduinoConnect;
-
-  @Override
-  protected void onCreate(Bundle savedInstanceState) {
-      super.onCreate(savedInstanceState);
-        ...
-      mArduinoConnect = new ArduinoConnect(this, getSupportFragmentManager());
-      mArduinoConnect.setCallback(this);
-        ...
-      mArduinoConnect.showDialog();                                         // Show dialog bluetooth list to connect
-  }
-  
-  @Override
-  protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-      super.onActivityResult(requestCode, resultCode, data);
-        ...
-      if(mArduinoConnect!=null)                                             // Must added to activity
-          mArduinoConnect.onActivityResult(requestCode, resultCode, data);
-  }
-  
-  @Override
-  protected void onDestroy() {
-      super.onDestroy();
-        ...
-      if(mArduinoConnect!=null)                                             // Recommended to add, to reduce memory leak
-          mArduinoConnect.disconnected();                                   // Disconnecting Android and Arduino
-  }
-  
-  private void showLog(String message){
-      Log.d("ArduinoConnect", message);
-  }
-  @Override
-  public void onArduinoConnected() {
-      showLog("Connected");
-  }
-  @Override
-  public void onArduinoConnectFailed() {
-      showLog("Failed to connected");
-  }
-  @Override
-  public void onSerialTextReceived(String text) {                           // Function to receive Serial text from Arduino
-      showLog(text);
-  }
-  @Override
-  public void onBluetoothDeviceNotFound() {
-      showLog("Bluetooth device not found");
-  }
-  @Override
-  public void onBluetoothFailedEnabled() {
-      showLog("Bluetooth device not enabled");
-  }
+    public class MainActivity extends AppCompatActivity
+            implements ArduinoConnectCallback{
+    
+      private ArduinoConnect mArduinoConnect;
+    
+      @Override
+      protected void onCreate(Bundle savedInstanceState) {
+          super.onCreate(savedInstanceState);
+            ...
+          mArduinoConnect = new ArduinoConnect(this, getSupportFragmentManager());
+          mArduinoConnect.setCallback(this);
+            ...
+          mArduinoConnect.showDialog();                                         // Show dialog bluetooth list to connect
+          mArduinoConnect.sendMessage("Hello");                                 // Send string to arduino
+      }
+      
+      @Override
+      protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+          super.onActivityResult(requestCode, resultCode, data);
+            ...
+          if(mArduinoConnect!=null)                                             // Must added to activity
+              mArduinoConnect.onActivityResult(requestCode, resultCode, data);
+      }
+      
+      @Override
+      protected void onDestroy() {
+          super.onDestroy();
+            ...
+          if(mArduinoConnect!=null)                                             // Recommended to add, to reduce memory leak
+              mArduinoConnect.disconnected();                                   // Disconnecting Android and Arduino
+      }
+      
+      private void showLog(String message){
+          Log.d("ArduinoConnect", message);
+      }
+      @Override
+      public void onArduinoConnected() {
+          showLog("Connected");
+      }
+      @Override
+      public void onArduinoConnectFailed() {
+          showLog("Failed to connected");
+      }
+      @Override
+      public void onSerialTextReceived(String text) {                           // Function to receive Serial text from Arduino
+          showLog(text);
+      }
+      @Override
+      public void onBluetoothDeviceNotFound() {
+          showLog("Bluetooth device not found");
+      }
+      @Override
+      public void onBluetoothFailedEnabled() {
+          showLog("Bluetooth device not enabled");
+      }
+    }
   
 ```
 

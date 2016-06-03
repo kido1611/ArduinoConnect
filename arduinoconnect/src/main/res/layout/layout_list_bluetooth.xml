@@ -1,7 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent">
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="5dp"
+        android:paddingRight="5dp"
+        android:paddingTop="5dp">
+        <TextView
+            android:id="@+id/title"
+            android:textStyle="bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/dialog_title"
+            android:textSize="25dp"
+            android:textColor="@color/colorAccent"
+            android:fontFamily="sans-serif-condensed"
+            android:layout_gravity="center_horizontal"/>
+        <id.kido1611.arduinoconnect.widget.CircularProgressView
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:id="@+id/progressView"
+            app:cpv_animAutostart="true"
+            app:cpv_indeterminate="true"
+            app:cpv_thickness="3dp"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"/>
+    </RelativeLayout>
+    <!--<com.github.rahatarmanahmed.cpv.CircularProgressView-->
+        <!--xmlns:app="http://schemas.android.com/apk/res-auto"-->
+        <!--android:id="@+id/progress_view"-->
+        <!--android:layout_width="40dp"-->
+        <!--android:layout_height="40dp"-->
+        <!--app:cpv_animAutostart="true"-->
+        <!--app:cpv_indeterminate="true" />-->
     <ListView
         android:id="@+id/list_paired"
         android:layout_width="match_parent"
@@ -18,12 +52,14 @@
             android:layout_height="wrap_content"
             android:id="@+id/btnRefresh"
             android:layout_weight="1.0"
-            android:text="@string/refresh_title"/>
+            android:text="@string/refresh_title"
+            android:theme="@style/ButtonTheme"/>
         <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/btnSettings"
             android:layout_weight="1.0"
-            android:text="@string/settings_title"/>
+            android:text="@string/settings_title"
+            android:theme="@style/ButtonTheme"/>
     </LinearLayout>
 </LinearLayout>

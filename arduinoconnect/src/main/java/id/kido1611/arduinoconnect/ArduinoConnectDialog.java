@@ -4,7 +4,10 @@ import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.Nullable;
@@ -16,8 +19,13 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
 
+import java.io.IOException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Set;
+import java.util.UUID;
+
+import id.kido1611.arduinoconnect.widget.CircularProgressView;
 
 /**
  * Created by kido1611 on 5/29/16.
@@ -28,7 +36,7 @@ public class ArduinoConnectDialog extends DialogFragment {
 
     }
 
-    private ArrayList<BluetoothDevice> mItems = new ArrayList<BluetoothDevice>();
+    private ArrayList<BluetoothItem> mItems = new ArrayList<BluetoothItem>();
 
     private ListView mPairedList;
     private ListBluetoothAdapter mPairedAdapter;
@@ -41,14 +49,17 @@ public class ArduinoConnectDialog extends DialogFragment {
     private BluetoothDeviceCallback mCallback;
 
     private ProgressDialog mProgressDialog;
+    private CircularProgressView mProgressView;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setStyle(DialogFragment.STYLE_NO_TITLE, R.style.AppCompatAlertDialogFragment);
+
         mBLAdapter = BluetoothAdapter.getDefaultAdapter();
 
         mProgressDialog = new ProgressDialog(getActivity());
-        mProgressDialog.setTitle(R.string.connecting_title);
+        mProgressDialog.setTitle(R.string.dialog_title);
         mProgressDialog.setCancelable(false);
 
     }
@@ -61,6 +72,8 @@ public class ArduinoConnectDialog extends DialogFragment {
         mBtnRefresh = (Button) rootView.findViewById(R.id.btnRefresh);
         mBtnSettings = (Button) rootView.findViewById(R.id.btnSettings);
         mPairedList = (ListView) rootView.findViewById(R.id.list_paired);
+        mProgressView = (CircularProgressView) rootView.findViewById(R.id.progressView);
+        mProgressView.setVisibility(View.GONE);
 
         mPairedAdapter = new ListBluetoothAdapter(getActivity(), mItems);
         mPairedList.setAdapter(mPairedAdapter);
@@ -85,29 +98,71 @@ public class ArduinoConnectDialog extends DialogFragment {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
 
-                BluetoothDevice mDevice = mItems.get(i);
-                mProgressDialog.setMessage("Connecting to "+mDevice.getName());
-                mProgressDialog.show();
-                ConnectArduino mConnArduino = new ConnectArduino(mDevice, new BluetoothDeviceCallback() {
-                    @Override
-                    public void onConnected(BluetoothSocket socket) {
-                        mProgressDialog.dismiss();
-                        if(mCallback!=null) mCallback.onConnected(socket);
-
-                        dismiss();
-                    }
-
-                    @Override
-                    public void onFailed() {
-                        if(mCallback!=null) mCallback.onFailed();
-                        mProgressDialog.dismiss();
-                    }
-                });
-                mConnArduino.start();
+                BluetoothItem item = mItems.get(i);
+                BluetoothDevice mDevice = item.getDevice();
+                if(item.isPaired()){
+                    connectArduino(mDevice);
+                }else{
+                    pairDevice(mDevice);
+                }
             }
         });
-        getDialog().setTitle(R.string.dialog_title);
+
+        IntentFilter filter = new IntentFilter();
+
+        filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+        filter.addAction(BluetoothDevice.ACTION_FOUND);
+        filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
+        filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_STARTED);
+        filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+
+        getActivity().registerReceiver(mReceiver, filter);
+
+        getDialog().getWindow().setLayout(ViewGroup.LayoutParams.FILL_PARENT, ViewGroup.LayoutParams.FILL_PARENT);
+
         return rootView;
+    }
+
+    private void pairDevice(BluetoothDevice device) {
+        mProgressDialog.setMessage(getString(R.string.pairing_title));
+        mProgressDialog.show();
+        try {
+            Method method = device.getClass().getMethod("createBond", (Class[]) null);
+            method.invoke(device, (Object[]) null);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void connectArduino(BluetoothDevice mDevice){
+        mProgressDialog.setMessage("Connecting to "+mDevice.getName());
+        mProgressDialog.show();
+        ConnectArduino mConnArduino = new ConnectArduino(mDevice, new BluetoothDeviceCallback() {
+            @Override
+            public void onConnected(BluetoothSocket socket) {
+                mProgressDialog.dismiss();
+                if(mCallback!=null) mCallback.onConnected(socket);
+                dismiss();
+            }
+
+            @Override
+            public void onFailed() {
+                if(mCallback!=null) mCallback.onFailed();
+                mProgressDialog.dismiss();
+            }
+        });
+        mConnArduino.start();
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        getActivity().unregisterReceiver(mReceiver);
+        if (mBLAdapter != null) {
+            if (mBLAdapter.isDiscovering()) {
+                mBLAdapter.cancelDiscovery();
+            }
+        }
     }
 
     public void setCallback(BluetoothDeviceCallback callback){
@@ -116,16 +171,94 @@ public class ArduinoConnectDialog extends DialogFragment {
 
     private void refreshList(){
         mItems.clear();
+//        BluetoothItem categoryPaired = new BluetoothItem();
+//        categoryPaired.setCategory(true);
+//        categoryPaired.setName(getString(R.string.paired_list_title));
+//        mItems.add(categoryPaired);
         Set<BluetoothDevice> pairedDevices = mBLAdapter.getBondedDevices();
         if (pairedDevices.size() > 0) {
             for (BluetoothDevice device : pairedDevices) {
-                mItems.add(device);
+                BluetoothItem item = new BluetoothItem();
+                item.setDevice(device);
+                item.setPaired(true);
+                mItems.add(item);
             }
         }
+//        BluetoothItem categoryUnpaired = new BluetoothItem();
+//        categoryUnpaired.setCategory(true);
+//        categoryUnpaired.setName(getString(R.string.unpaired_list_title));
+//        mItems.add(categoryUnpaired);
         mPairedAdapter.notifyDataSetChanged();
+        if(!mBLAdapter.isDiscovering())mBLAdapter.startDiscovery();
+
     }
 
-    public interface BluetoothDeviceCallback{
+    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+
+            if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
+
+            } else if (BluetoothAdapter.ACTION_DISCOVERY_STARTED.equals(action)) {
+                mProgressView.setVisibility(View.VISIBLE);
+            } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
+                mProgressView.setVisibility(View.GONE);
+            } else if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+                BluetoothDevice device = (BluetoothDevice) intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                if(device==null) return;
+                if(!mPairedAdapter.isAvailable(device)){
+                    BluetoothItem item = new BluetoothItem();
+                    item.setDevice(device);
+                    item.setPaired(false);
+                    item.setCategory(false);
+                    mItems.add(item);
+                    mPairedAdapter.notifyDataSetChanged();
+                }
+            }else if(BluetoothDevice.ACTION_BOND_STATE_CHANGED.equals(action)){
+                mProgressDialog.dismiss();
+                refreshList();
+            }
+        }
+    };
+
+    public static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+    class ConnectArduino extends Thread{
+
+        ArduinoConnectDialog.BluetoothDeviceCallback callback;
+
+        private BluetoothSocket mSocket;
+        private BluetoothDevice mDevice;
+
+        public ConnectArduino(BluetoothDevice device, ArduinoConnectDialog.BluetoothDeviceCallback cb){
+            this.callback = cb;
+            try {
+                mSocket = device.createRfcommSocketToServiceRecord(MY_UUID);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            mDevice = device;
+        }
+
+        @Override
+        public void run() {
+            try {
+                mSocket.connect();
+
+                if(callback!=null) callback.onConnected(mSocket);
+
+            } catch (IOException e) {
+                e.printStackTrace();
+                try {
+                    mSocket.close();
+                } catch (IOException e1) {
+                    //e1.printStackTrace();
+                }
+                if(callback!=null) callback.onFailed();
+            }
+        }
+    }
+
+    interface BluetoothDeviceCallback{
         void onConnected(BluetoothSocket socket);
         void onFailed();
     }

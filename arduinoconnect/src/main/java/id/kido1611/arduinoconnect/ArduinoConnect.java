@@ -94,7 +94,11 @@ public class ArduinoConnect {
                 ManageBluetooth mManage = new ManageBluetooth(socket);
                 mManage.start();
 
+                sleep(2000);
                 mHandler.obtainMessage(ARDUINO_MSG_CONNECTED);
+                if(mCallback!=null){
+                	mCallback.onArduinoConnected(mConnectedDevice);
+                }
             }
 
             @Override

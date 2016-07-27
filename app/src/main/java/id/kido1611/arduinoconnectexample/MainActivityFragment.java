@@ -12,6 +12,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Toast;
 
+import id.kido1611.arduinoconnect.ArduinoConnect;
 import id.kido1611.arduinoconnect.ArduinoConnectCallback;
 
 /**
@@ -31,6 +32,10 @@ public class MainActivityFragment extends Fragment
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         ((MainActivity)getActivity()).getArduinoConnect().setCallback(this);
+    }
+
+    private ArduinoConnect getArduinoConnect(){
+        return ((MainActivity)getActivity()).getArduinoConnect();
     }
 
     @Override
@@ -56,7 +61,10 @@ public class MainActivityFragment extends Fragment
 
     @Override
     public void onArduinoConnected(BluetoothDevice device) {
-        Toast.makeText(getActivity(), "Connected to "+device.getName(), Toast.LENGTH_LONG).show();
+        if(getArduinoConnect()!=null){
+            getArduinoConnect().sendMessage("Connected..");
+        }
+//        ((MainActivity)getActivity()).hideFAB(View.GONE);
     }
 
     @Override
@@ -66,7 +74,7 @@ public class MainActivityFragment extends Fragment
 
     @Override
     public void onSerialTextReceived(String text) {
-        mOutputText.setText(mOutputText.getText().toString()+"\n"+text);
+        mOutputText.setText(text);
     }
 
     @Override

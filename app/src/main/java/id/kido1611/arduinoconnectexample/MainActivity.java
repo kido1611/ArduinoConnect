@@ -18,6 +18,7 @@ import id.kido1611.arduinoconnect.ArduinoConnectCallback;
 public class MainActivity extends AppCompatActivity {
 
     private ArduinoConnect mArduinoConnect;
+    private FloatingActionButton fab;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -40,6 +41,10 @@ public class MainActivity extends AppCompatActivity {
 
         getSupportFragmentManager().beginTransaction().replace(R.id.fragment, new MainActivityFragment()).commit();
 
+    }
+
+    public void hideFAB(int visibility){
+        fab.setVisibility(visibility);
     }
 
     @Override

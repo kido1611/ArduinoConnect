@@ -244,7 +244,11 @@ public class ArduinoConnectDialog extends DialogFragment {
             try {
                 if(mBLAdapter.isDiscovering()) mBLAdapter.cancelDiscovery();
                 mSocket.connect();
-
+                try {
+                    sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 if(callback!=null) callback.onConnected(mDevice, mSocket);
 
             } catch (IOException e) {

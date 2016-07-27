@@ -7,6 +7,7 @@ import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.support.v4.app.FragmentManager;
 import android.util.Log;
@@ -31,7 +32,7 @@ public class ArduinoConnect {
 
     private ArduinoConnectDialog mDialog;
 
-    int sleepTime = 1000;
+    int sleepTime = 50;
 
     protected static final int ARDUINO_MSG_CONNECTED = 0;
     protected static final int ARDUINO_MSG_CONNECT_FAILED = 1;
@@ -45,7 +46,14 @@ public class ArduinoConnect {
             super.handleMessage(msg);
             switch (msg.what){
                 case ARDUINO_MSG_CONNECTED:
-                    if(mCallback!=null) mCallback.onArduinoConnected(mConnectedDevice);
+                    if(mCallback!=null){
+                        mContext.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                mCallback.onArduinoConnected(mConnectedDevice);
+                            }
+                        });
+                    }
                     break;
                 case ARDUINO_MSG_CONNECT_FAILED:
                     if(mCallback!=null) mCallback.onArduinoConnectFailed();
@@ -65,6 +73,10 @@ public class ArduinoConnect {
         }
     };
 
+    /**
+     * Set delay time to read message from arduino
+     * @param time
+     */
     public void setSleepTime(int time){
         sleepTime = time;
     }
@@ -80,6 +92,7 @@ public class ArduinoConnect {
         this.mFragmentManager = fragmentManager;
         this.mCallback = callback;
         init();
+        Looper.prepare();
     }
 
     private void init(){
@@ -94,7 +107,12 @@ public class ArduinoConnect {
                 ManageBluetooth mManage = new ManageBluetooth(socket);
                 mManage.start();
 
-                sleep(2000);
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
                 mHandler.obtainMessage(ARDUINO_MSG_CONNECTED);
                 if(mCallback!=null){
                 	mCallback.onArduinoConnected(mConnectedDevice);

@@ -111,10 +111,10 @@ public class ArduinoConnectDialog extends DialogFragment {
         IntentFilter filter = new IntentFilter();
 
         filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
-        filter.addAction(BluetoothDevice.ACTION_FOUND);
-        filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
         filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_STARTED);
         filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+        filter.addAction(BluetoothDevice.ACTION_FOUND);
+        filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
 
         getActivity().registerReceiver(mReceiver, filter);
 
@@ -221,7 +221,8 @@ public class ArduinoConnectDialog extends DialogFragment {
         }
     };
 
-    public static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+    private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+
     class ConnectArduino extends Thread{
 
         ArduinoConnectDialog.BluetoothDeviceCallback callback;

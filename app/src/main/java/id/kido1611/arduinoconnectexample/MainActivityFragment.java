@@ -24,17 +24,20 @@ public class MainActivityFragment extends Fragment
     public MainActivityFragment() {
     }
 
-    private TextInputLayout mInputLayoutDelay, mOutputLayoutText;
-    private TextInputEditText mInputDelay, mOutputText;
+    private TextInputLayout mMessageLayout, mCommandLayout, mOutputLayoutText;
+    private TextInputEditText mMessageText, mCommandText, mOutputText;
     private Button mBtnSubmit;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         ((MainActivity)getActivity()).getArduinoConnect().setCallback(this);
+        getArduinoConnect().setSleepTime(1000);
     }
 
     private ArduinoConnect getArduinoConnect(){
+        if((MainActivity)getActivity()==null) return null;
+
         return ((MainActivity)getActivity()).getArduinoConnect();
     }
 
@@ -43,16 +46,22 @@ public class MainActivityFragment extends Fragment
                              Bundle savedInstanceState) {
         View rootView =  inflater.inflate(R.layout.fragment_main, container, false);
 
-        mInputLayoutDelay = (TextInputLayout) rootView.findViewById(R.id.inputLayout);
+        mMessageLayout = (TextInputLayout) rootView.findViewById(R.id.messageLayout);
+        mCommandLayout = (TextInputLayout) rootView.findViewById(R.id.commandLayout);
         mOutputLayoutText = (TextInputLayout) rootView.findViewById(R.id.outputLayout);
-        mInputDelay = (TextInputEditText) rootView.findViewById(R.id.inputText);
+        mMessageText = (TextInputEditText) rootView.findViewById(R.id.messageText);
+        mCommandText = (TextInputEditText) rootView.findViewById(R.id.commandText);
         mOutputText = (TextInputEditText) rootView.findViewById(R.id.outputText);
         mBtnSubmit = (Button) rootView.findViewById(R.id.btnSubmit);
 
         mBtnSubmit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ((MainActivity)getActivity()).getArduinoConnect().sendMessage(mInputDelay.getText().toString());
+                if(mCommandText.getText().toString().isEmpty()){
+                    if(getArduinoConnect()!=null) getArduinoConnect().sendMessage(mMessageText.getText().toString());
+                }else{
+                    if(getArduinoConnect()!=null) getArduinoConnect().sendCommand(mCommandText.getText().toString(), mMessageText.getText().toString());
+                }
             }
         });
 
@@ -64,12 +73,26 @@ public class MainActivityFragment extends Fragment
         if(getArduinoConnect()!=null){
             getArduinoConnect().sendMessage("Connected..");
         }
-//        ((MainActivity)getActivity()).hideFAB(View.GONE);
+        Toast.makeText(getActivity(), "Connected", Toast.LENGTH_SHORT).show();
+        ((MainActivity)getActivity()).hideFAB(View.GONE);
+    }
+
+    @Override
+    public void onArduinoDisconnected() {
+        if(getArduinoConnect()!=null){
+            Toast.makeText(getActivity(), "Disconnected", Toast.LENGTH_SHORT).show();
+            ((MainActivity)getActivity()).hideFAB(View.VISIBLE);
+        }
+    }
+
+    @Override
+    public void onArduinoNotConnected() {
+        Toast.makeText(getActivity(), "Not Connected", Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void onArduinoConnectFailed() {
-
+        Toast.makeText(getActivity(), "Failed to connect", Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -79,11 +102,11 @@ public class MainActivityFragment extends Fragment
 
     @Override
     public void onBluetoothDeviceNotFound() {
-
+        Toast.makeText(getActivity(), "Bluetooth device not found", Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void onBluetoothFailedEnabled() {
-
+        Toast.makeText(getActivity(), "Failed to turn on Bluetooth", Toast.LENGTH_SHORT).show();
     }
 }

@@ -32,27 +32,52 @@ public class ArduinoConnect {
 
     private ArduinoConnectDialog mDialog;
 
-    int sleepTime = 50;
+    int sleepTime = 100;
 
+    /**
+     * ARDUINO_MSG_CONNECTED = 0
+     * Use for ArduinoConnect to send message if Android and Arduino is connected
+     */
     protected static final int ARDUINO_MSG_CONNECTED = 0;
+    /**
+     * ARDUINO_MSG_CONNECT_FAILDE = 1
+     * Use for ArduinoConnect to send message if Android failed to connect to Arduino
+     */
     protected static final int ARDUINO_MSG_CONNECT_FAILED = 1;
+    /**
+     * ARDUINO_MSG_RECEIVE_SERIAL_TEXT = 2
+     * Use for ArduinoConnect to send message when receive message or text from Arduino
+     */
     protected static final int ARDUINO_MSG_RECEIVE_SERIAL_TEXT = 2;
+    /**
+     * ARDUINO_MSG_BLUETOOTH_NOT_FOUND = 3
+     * Use for ArduinoConnect to send message when there is Bluetooth Device found on phone
+     */
     protected static final int ARDUINO_MSG_BLUETOOTH_NOT_FOUND = 3;
+    /**
+     * ARDUINO_MSG_BLUETOOTH_FAILED = 4
+     * Use for ArduinoConnect to send message when failed to enable Bluetooth
+     */
     protected static final int ARDUINO_MSG_BLUETOOTH_FAILED = 4;
+    /**
+     * ARDUINO_MSG_DISCONNECTED = 5
+     * Use for ArduinoConnect to send message when Android and Arduino disconnected
+     */
+    protected static final int ARDUINO_MSG_DISCONNECTED = 5;
+    /**
+     * ARDUINO_MSG_NOT_CONNECTED = 6
+     * Use for ArduinoConnect to send message when Android and Arduino not connected
+     */
+    protected static final int ARDUINO_MSG_NOT_CONNECTED = 6;
 
-    protected Handler mHandler = new Handler(){
+    protected Handler mHandler = new Handler(Looper.getMainLooper()){
         @Override
         public void handleMessage(Message msg) {
-            super.handleMessage(msg);
+            //super.handleMessage(msg);
             switch (msg.what){
                 case ARDUINO_MSG_CONNECTED:
                     if(mCallback!=null){
-                        mContext.runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                mCallback.onArduinoConnected(mConnectedDevice);
-                            }
-                        });
+                        mCallback.onArduinoConnected(mConnectedDevice);
                     }
                     break;
                 case ARDUINO_MSG_CONNECT_FAILED:
@@ -61,7 +86,8 @@ public class ArduinoConnect {
                 case ARDUINO_MSG_RECEIVE_SERIAL_TEXT:
                     byte[] readBuf = (byte[]) msg.obj;
                     String strIncom = new String(readBuf);
-                    if(mCallback!=null) mCallback.onSerialTextReceived(strIncom);
+                    strIncom.trim();
+                    if(mCallback!=null && !strIncom.isEmpty() && !strIncom.equals(" ") && !strIncom.equals("")) mCallback.onSerialTextReceived(strIncom);
                     break;
                 case ARDUINO_MSG_BLUETOOTH_NOT_FOUND:
                     if(mCallback!=null) mCallback.onBluetoothDeviceNotFound();
@@ -69,16 +95,29 @@ public class ArduinoConnect {
                 case ARDUINO_MSG_BLUETOOTH_FAILED:
                     if(mCallback!=null) mCallback.onBluetoothFailedEnabled();
                     break;
+                case ARDUINO_MSG_DISCONNECTED:
+                    if(mCallback!=null) mCallback.onArduinoDisconnected();
+                    break;
+                case ARDUINO_MSG_NOT_CONNECTED:
+                    if(mCallback!=null) mCallback.onArduinoNotConnected();
+                    break;
             }
         }
     };
 
     /**
      * Set delay time to read message from arduino
-     * @param time
+     * @param milliseconds settime in millisecond
      */
-    public void setSleepTime(int time){
-        sleepTime = time;
+    public void setSleepTime(int milliseconds){
+        sleepTime = milliseconds;
+    }
+    /**
+     * Set delay time to read message from arduino
+     * @param milliseconds settime in millisecond
+     */
+    public void setDelayTime(int milliseconds){
+        sleepTime = milliseconds;
     }
 
     public ArduinoConnect(Activity activity, FragmentManager fragmentManager){
@@ -92,7 +131,6 @@ public class ArduinoConnect {
         this.mFragmentManager = fragmentManager;
         this.mCallback = callback;
         init();
-        Looper.prepare();
     }
 
     private void init(){
@@ -113,20 +151,17 @@ public class ArduinoConnect {
                     e.printStackTrace();
                 }
 
-                mHandler.obtainMessage(ARDUINO_MSG_CONNECTED);
-                if(mCallback!=null){
-                	mCallback.onArduinoConnected(mConnectedDevice);
-                }
+                mHandler.obtainMessage(ARDUINO_MSG_CONNECTED).sendToTarget();
             }
 
             @Override
             public void onFailed() {
-                mHandler.obtainMessage(ARDUINO_MSG_CONNECT_FAILED);
+                mHandler.obtainMessage(ARDUINO_MSG_CONNECT_FAILED).sendToTarget();
             }
         });
 
         if(mBLAdapter==null){
-            mHandler.obtainMessage(ARDUINO_MSG_BLUETOOTH_NOT_FOUND);
+            mHandler.obtainMessage(ARDUINO_MSG_BLUETOOTH_NOT_FOUND).sendToTarget();
         }
 
     }
@@ -149,24 +184,40 @@ public class ArduinoConnect {
             mDialog.dismiss();
     }
 
+    public boolean isConnected(){
+        return mConnectedSocket!=null;
+    }
+
     public void disconnected(){
-        if(mConnectedSocket!=null)
+        if(mConnectedSocket!=null && mConnectedSocket.isConnected()) {
+            mHandler.obtainMessage(ARDUINO_MSG_DISCONNECTED).sendToTarget();
             try {
                 mConnectedSocket.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
     }
 
 
     public void sendMessage(String message){
-        if(mConnectedSocket!=null){
+        if(mConnectedSocket!=null && mConnectedSocket.isConnected()){
             try {
                 mConnectedSocket.getOutputStream().write(message.getBytes());
             } catch (IOException e) {
                 //e.printStackTrace();
             }
+        }else{
+            mHandler.obtainMessage(ARDUINO_MSG_NOT_CONNECTED).sendToTarget();
         }
+    }
+
+    public void sendCommand(String command, String data){
+        StringBuilder builder = new StringBuilder();
+        builder.append(data);
+        builder.append(':');
+        builder.append(command);
+        sendMessage(builder.toString());
     }
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -174,7 +225,7 @@ public class ArduinoConnect {
             if (mDialog != null)
                 mDialog.show(mFragmentManager, "ArduinoConnectDialog");
         }else if(requestCode==0 && resultCode==mContext.RESULT_CANCELED){
-            mHandler.obtainMessage(ARDUINO_MSG_BLUETOOTH_FAILED);
+            mHandler.obtainMessage(ARDUINO_MSG_BLUETOOTH_FAILED).sendToTarget();
         }
     }
 
@@ -212,6 +263,7 @@ public class ArduinoConnect {
 
                     mHandler.obtainMessage(ARDUINO_MSG_RECEIVE_SERIAL_TEXT, bytes, -1, buffer).sendToTarget();
                 } catch (IOException e) {
+                    disconnected();
                     break;
                 }
             }

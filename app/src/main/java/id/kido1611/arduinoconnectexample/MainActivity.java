@@ -76,7 +76,16 @@ public class MainActivity extends AppCompatActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_disconnected) {
+            if(getArduinoConnect()!=null){
+                if(getArduinoConnect().isConnected()){
+                    getArduinoConnect().disconnected();
+                }else{
+                    Toast.makeText(this, "Failed to disconnect", Toast.LENGTH_SHORT).show();
+                }
+            }else{
+                Toast.makeText(this, "Failed to disconnect", Toast.LENGTH_SHORT).show();
+            }
             return true;
         }
 
@@ -85,12 +94,12 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
-
         /**
          * Add this to fix memory leak
          */
         if(mArduinoConnect!=null)
             mArduinoConnect.disconnected();
+
+        super.onDestroy();
     }
 }

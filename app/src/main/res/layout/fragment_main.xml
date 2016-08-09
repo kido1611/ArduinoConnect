@@ -9,29 +9,57 @@
     tools:context="id.kido1611.arduinoconnectexample.MainActivityFragment"
     tools:showIn="@layout/activity_main">
 
-    <android.support.design.widget.TextInputLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/inputLayout">
-        <android.support.design.widget.TextInputEditText
-            android:inputType="numberDecimal"
-            android:layout_width="match_parent"
+        android:orientation="horizontal"
+        android:id="@+id/messageFrame">
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="0.0dp"
+            android:layout_weight="1.0"
             android:layout_height="wrap_content"
-            android:id="@+id/inputText"
-            android:hint="@string/text_hint"/>
-    </android.support.design.widget.TextInputLayout>
+            android:id="@+id/messageLayout">
+            <android.support.design.widget.TextInputEditText
+                android:inputType="text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/messageText"
+                android:hint="Message"/>
+        </android.support.design.widget.TextInputLayout>
+
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/commandLayout">
+            <android.support.design.widget.TextInputEditText
+                android:inputType="textCapCharacters"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/commandText"
+                android:maxLength="1"
+                android:hint="Command"/>
+        </android.support.design.widget.TextInputLayout>
+    </LinearLayout>
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Submit"
+        android:text="Send message"
         android:id="@+id/btnSubmit"
-        android:layout_below="@id/inputLayout"
+        android:layout_below="@id/messageFrame"
         android:theme="@style/AppTheme.Button"/>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Command list (example) : \n 1. null : no command or just send a message\n2. c : clear display\n3. r : reset counter\n4. m : send messasge\n\nall command is CASE SENSITIVE"
+        android:textStyle="italic"
+        android:id="@+id/commandUse"
+        android:layout_below="@id/btnSubmit"/>
     <android.support.design.widget.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/outputLayout"
-        android:layout_below="@id/btnSubmit">
+        android:layout_below="@id/commandUse"
+        android:layout_marginTop="10dp">
         <android.support.design.widget.TextInputEditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

@@ -7,9 +7,11 @@ import android.bluetooth.BluetoothDevice;
  */
 public interface ArduinoConnectCallback {
 
-    void onArduinoConnected(BluetoothDevice device);
-    void onArduinoConnectFailed();
     void onSerialTextReceived(String text);
+    void onArduinoConnected(BluetoothDevice device);
+    void onArduinoDisconnected();
+    void onArduinoNotConnected();
+    void onArduinoConnectFailed();
     void onBluetoothDeviceNotFound();
     void onBluetoothFailedEnabled();
 }

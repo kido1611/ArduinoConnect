@@ -97,7 +97,7 @@ public class MainActivity extends AppCompatActivity
 ```
 
 ## Todo :
-1. Show section paired and unpaired
+1. ~~Show section paired and unpaired~~
 2. Still imagine
 
 License

@@ -191,12 +191,11 @@ public class ArduinoConnect {
                 mConnectedSocket.close();
             } catch (IOException e) {
                 e.printStackTrace();
-            }finally(){
+            }finally{
                 mHandler.obtainMessage(ARDUINO_MSG_DISCONNECTED).sendToTarget();
             }
         }
     }
-
 
     public void sendMessage(String message){
         if(mConnectedSocket!=null && mConnectedSocket.isConnected()){

@@ -30,9 +30,9 @@ import id.kido1611.arduinoconnect.widget.CircularProgressView;
 /**
  * Created by kido1611 on 5/29/16.
  */
-public class ArduinoConnectDialog extends DialogFragment {
+public class DialogConnect extends DialogFragment {
 
-    public ArduinoConnectDialog(){
+    public DialogConnect(){
 
     }
 
@@ -225,12 +225,12 @@ public class ArduinoConnectDialog extends DialogFragment {
 
     class ConnectArduino extends Thread{
 
-        ArduinoConnectDialog.BluetoothDeviceCallback callback;
+        DialogConnect.BluetoothDeviceCallback callback;
 
         private BluetoothSocket mSocket;
         private BluetoothDevice mDevice;
 
-        public ConnectArduino(BluetoothDevice device, ArduinoConnectDialog.BluetoothDeviceCallback cb){
+        public ConnectArduino(BluetoothDevice device, DialogConnect.BluetoothDeviceCallback cb){
             this.callback = cb;
             try {
                 mSocket = device.createRfcommSocketToServiceRecord(MY_UUID);

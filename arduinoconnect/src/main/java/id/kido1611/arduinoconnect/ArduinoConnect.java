@@ -4,14 +4,11 @@ import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.support.v4.app.FragmentManager;
-import android.util.Log;
-import android.widget.Toast;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,7 +27,7 @@ public class ArduinoConnect {
     private BluetoothSocket mConnectedSocket = null;
     private BluetoothDevice mConnectedDevice = null;
 
-    private ArduinoConnectDialog mDialog;
+    private DialogConnect mDialog;
 
     int sleepTime = 100;
 
@@ -135,8 +132,8 @@ public class ArduinoConnect {
 
     private void init(){
         mBLAdapter = BluetoothAdapter.getDefaultAdapter();
-        mDialog = new ArduinoConnectDialog();
-        mDialog.setCallback(new ArduinoConnectDialog.BluetoothDeviceCallback() {
+        mDialog = new DialogConnect();
+        mDialog.setCallback(new DialogConnect.BluetoothDeviceCallback() {
             @Override
             public void onConnected(BluetoothDevice device, BluetoothSocket socket) {
                 disconnected();
@@ -173,7 +170,7 @@ public class ArduinoConnect {
     public void showDialog(){
         if(mBLAdapter.isEnabled()) {
             if (mDialog != null)
-                mDialog.show(mFragmentManager, "ArduinoConnectDialog");
+                mDialog.show(mFragmentManager, "DialogConnect");
         }else{
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             mContext.startActivityForResult(enableBtIntent, 0);
@@ -185,16 +182,17 @@ public class ArduinoConnect {
     }
 
     public boolean isConnected(){
-        return mConnectedSocket!=null;
+        return mConnectedSocket!=null && mConnectedSocket.isConnected();
     }
 
     public void disconnected(){
         if(mConnectedSocket!=null && mConnectedSocket.isConnected()) {
-            mHandler.obtainMessage(ARDUINO_MSG_DISCONNECTED).sendToTarget();
             try {
                 mConnectedSocket.close();
             } catch (IOException e) {
                 e.printStackTrace();
+            }finally(){
+                mHandler.obtainMessage(ARDUINO_MSG_DISCONNECTED).sendToTarget();
             }
         }
     }

@@ -36,6 +36,11 @@
         <!--android:layout_height="40dp"-->
         <!--app:cpv_animAutostart="true"-->
         <!--app:cpv_indeterminate="true" />-->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/message_device_not_found"
+        android:padding="5dp"/>
     <ListView
         android:id="@+id/list_paired"
         android:layout_width="match_parent"
@@ -47,19 +52,23 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
+
         <Button
+            android:id="@+id/btnRefresh"
+            style="@style/Widget.AppCompat.Button.Colored"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/btnRefresh"
             android:layout_weight="1.0"
             android:text="@string/refresh_title"
-            android:theme="@style/ButtonTheme"/>
+            android:theme="@style/ButtonTheme" />
+
         <Button
+            android:id="@+id/btnSettings"
+            style="@style/Widget.AppCompat.Button.Colored"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/btnSettings"
             android:layout_weight="1.0"
             android:text="@string/settings_title"
-            android:theme="@style/ButtonTheme"/>
+            android:theme="@style/ButtonTheme" />
     </LinearLayout>
 </LinearLayout>

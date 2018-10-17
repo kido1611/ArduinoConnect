@@ -9,6 +9,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.support.v4.app.FragmentManager;
+import android.util.Log;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,6 +31,8 @@ public class ArduinoConnect {
     private DialogConnect mDialog;
 
     int sleepTime = 100;
+
+    private boolean receive_message = false;
 
     /**
      * ARDUINO_MSG_CONNECTED = 0
@@ -82,8 +85,9 @@ public class ArduinoConnect {
                     break;
                 case ARDUINO_MSG_RECEIVE_SERIAL_TEXT:
                     byte[] readBuf = (byte[]) msg.obj;
-                    String strIncom = new String(readBuf);
-                    strIncom.trim();
+                    int length = msg.arg1;
+                    String strIncom = new String(readBuf, 0, length);
+                    strIncom = strIncom.trim();
                     if(mCallback!=null && !strIncom.isEmpty() && !strIncom.equals(" ") && !strIncom.equals("")) mCallback.onSerialTextReceived(strIncom);
                     break;
                 case ARDUINO_MSG_BLUETOOTH_NOT_FOUND:
@@ -140,6 +144,7 @@ public class ArduinoConnect {
                 mConnectedDevice = device;
                 mConnectedSocket = socket;
                 ManageBluetooth mManage = new ManageBluetooth(socket);
+                receive_message = true;
                 mManage.start();
 
                 try {
@@ -168,9 +173,21 @@ public class ArduinoConnect {
     }
 
     public void showDialog(){
+        if(mBLAdapter==null){
+            mHandler.obtainMessage(ARDUINO_MSG_BLUETOOTH_NOT_FOUND).sendToTarget();
+            return;
+        }
+
         if(mBLAdapter.isEnabled()) {
-            if (mDialog != null)
-                mDialog.show(mFragmentManager, "DialogConnect");
+            if(isConnected())
+            {
+
+            }
+            else
+            {
+                if (mDialog != null)
+                    mDialog.show(mFragmentManager, "DialogConnect");
+            }
         }else{
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             mContext.startActivityForResult(enableBtIntent, 0);
@@ -188,6 +205,7 @@ public class ArduinoConnect {
     public void disconnected(){
         if(mConnectedSocket!=null && mConnectedSocket.isConnected()) {
             try {
+                receive_message = false;
                 mConnectedSocket.close();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -244,22 +262,26 @@ public class ArduinoConnect {
         }
 
         public void run() {
-            byte[] buffer;
+            byte[] buffer = new byte[1024];
             int bytes;
 
-            while (true) {
+            while (receive_message) {
                 try {
-                    try {
-                        sleep(sleepTime);
-                    } catch (InterruptedException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-                    buffer = new byte[1024];
-                    bytes = mmInStream.read(buffer);
+//                    try {
+//                        sleep(sleepTime);
+//                    } catch (InterruptedException e) {
+//                        // TODO Auto-generated catch block
+//                        e.printStackTrace();
+//                    }
 
-                    mHandler.obtainMessage(ARDUINO_MSG_RECEIVE_SERIAL_TEXT, bytes, -1, buffer).sendToTarget();
-                } catch (IOException e) {
+                    if(mmInStream.available() > 0)
+                    {
+                        bytes = mmInStream.read(buffer);
+
+                        mHandler.obtainMessage(ARDUINO_MSG_RECEIVE_SERIAL_TEXT, bytes, 0, buffer).sendToTarget();
+                    }
+                }
+                catch (IOException e) {
                     disconnected();
                     break;
                 }

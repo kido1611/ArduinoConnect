@@ -7,5 +7,6 @@
 /build
 /captures
 .idea
+.idea/*
 /.idea
 /.idea/*

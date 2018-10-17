@@ -6,6 +6,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
@@ -62,6 +63,16 @@ public class DialogConnect extends DialogFragment {
         mProgressDialog.setTitle(R.string.dialog_title);
         mProgressDialog.setCancelable(false);
 
+        IntentFilter filter = new IntentFilter();
+
+        filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+        filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_STARTED);
+        filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+        filter.addAction(BluetoothDevice.ACTION_FOUND);
+        filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
+
+        getActivity().registerReceiver(mReceiver, filter);
+
     }
 
     @Nullable
@@ -98,6 +109,11 @@ public class DialogConnect extends DialogFragment {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
 
+                if(mBLAdapter.isDiscovering())
+                {
+                    mBLAdapter.cancelDiscovery();
+                }
+
                 BluetoothItem item = mItems.get(i);
                 BluetoothDevice mDevice = item.getDevice();
                 if(item.isPaired()){
@@ -107,16 +123,6 @@ public class DialogConnect extends DialogFragment {
                 }
             }
         });
-
-        IntentFilter filter = new IntentFilter();
-
-        filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
-        filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_STARTED);
-        filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-        filter.addAction(BluetoothDevice.ACTION_FOUND);
-        filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
-
-        getActivity().registerReceiver(mReceiver, filter);
 
         getDialog().getWindow().setLayout(ViewGroup.LayoutParams.FILL_PARENT, ViewGroup.LayoutParams.FILL_PARENT);
 
@@ -189,7 +195,11 @@ public class DialogConnect extends DialogFragment {
 //        categoryUnpaired.setName(getString(R.string.unpaired_list_title));
 //        mItems.add(categoryUnpaired);
         mPairedAdapter.notifyDataSetChanged();
-        if(!mBLAdapter.isDiscovering())mBLAdapter.startDiscovery();
+        mBLAdapter.cancelDiscovery();
+        if(!mBLAdapter.isDiscovering())
+        {
+            mBLAdapter.startDiscovery();
+        }
 
     }
 
@@ -243,7 +253,9 @@ public class DialogConnect extends DialogFragment {
         @Override
         public void run() {
             try {
-                if(mBLAdapter.isDiscovering()) mBLAdapter.cancelDiscovery();
+                if(mBLAdapter.isDiscovering()){
+                    mBLAdapter.cancelDiscovery();
+                }
                 mSocket.connect();
                 try {
                     sleep(1000);
